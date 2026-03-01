@@ -55,7 +55,7 @@ function App() {
 
   // Fetch students
   useEffect(() => {
-    fetch('http://localhost:5000/students')
+    fetch('https://eduportal-lake.vercel.app/api/students')
       .then(res => res.json())
       .then(data => setStudents(data))
       .catch(err => console.error("Backend not reachable:", err));
@@ -118,7 +118,7 @@ function App() {
     };
 
     if (isEditing) {
-      fetch(`http://localhost:5000/students/${formData.id}`, {
+      fetch(`https://eduportal-lake.vercel.app/api/students/${formData.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -132,7 +132,7 @@ function App() {
         })
         .catch(err => alert("Error updating student: " + err));
     } else {
-      fetch('http://localhost:5000/students', {
+      fetch('https://eduportal-lake.vercel.app/api/students', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -149,7 +149,7 @@ function App() {
   // Delete
   const handleDelete = (id) => {
     if (!window.confirm("Delete this student?")) return;
-    fetch(`http://localhost:5000/students/${id}`, { method: 'DELETE' })
+      fetch(`https://eduportal-lake.vercel.app/api/students/${id}`, { method: 'DELETE' })
       .then(res => {
         if (res.ok) {
           setStudents(students.filter(s => String(s.id) !== String(id)));
