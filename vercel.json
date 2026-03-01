@@ -1,8 +1,0 @@
-{
-  "routes": [
-    {
-      "src": "/api/students",
-      "dest": "/api/students.js"
-    }
-  ]
-}
