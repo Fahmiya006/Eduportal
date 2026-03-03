@@ -14,7 +14,7 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 
-const BASE_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 ChartJS.register(
   CategoryScale,
@@ -60,7 +60,7 @@ function App() {
   });
   const [isEditing, setIsEditing] = useState(false);
 
-  // ✅ FETCH STUDENTS
+  // FETCH STUDENTS
   useEffect(() => {
     fetch(`${BASE_URL}/students`)
       .then(res => res.json())
@@ -70,13 +70,14 @@ function App() {
 
   // Navbar scroll effect
   useEffect(() => {
-    const onScroll = () => setNavbarSolid(window.scrollY > 40);
+    const onScroll = () => {
+      setNavbarSolid(window.scrollY > 40);
+    };
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Admin Login
   const handleAdminLogin = () => {
     if (adminPinInput === '4036') {
       setIsAdminLoggedIn(true);
@@ -87,31 +88,15 @@ function App() {
     }
   };
 
-  // CREATE / UPDATE
   const handleAdminCRUD = (e) => {
     e.preventDefault();
-
-    const nameRegex = /^[a-zA-Z ]{3,30}$/;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const allowedGrades = ['S', 'A+', 'A', 'B+', 'B', 'C+', 'C', 'U'];
-
-    if (!nameRegex.test(formData.name)) return alert("Invalid Name");
-    if (!emailRegex.test(formData.email)) return alert("Invalid Email");
-
-    const g1 = formData.assess1.toUpperCase();
-    const g2 = formData.assess2.toUpperCase();
-    const g3 = formData.endSem.toUpperCase();
-
-    if (!allowedGrades.includes(g1) || !allowedGrades.includes(g2) || !allowedGrades.includes(g3)) {
-      return alert("Invalid Grade");
-    }
 
     const payload = {
       name: formData.name,
       email: formData.email,
-      assess1: g1,
-      assess2: g2,
-      endSem: g3
+      assess1: formData.assess1.toUpperCase(),
+      assess2: formData.assess2.toUpperCase(),
+      endSem: formData.endSem.toUpperCase()
     };
 
     if (isEditing) {
@@ -123,7 +108,9 @@ function App() {
         .then(res => res.json())
         .then(() => {
           setStudents(students.map(s =>
-            String(s._id) === String(formData.id) ? { ...s, ...payload } : s
+            String(s._id) === String(formData.id)
+              ? { ...s, ...payload }
+              : s
           ));
           setIsEditing(false);
           setFormData({ id: null, name: '', email: '', assess1: '', assess2: '', endSem: '' });
@@ -143,17 +130,17 @@ function App() {
     }
   };
 
-  // DELETE
   const handleDelete = (id) => {
     if (!window.confirm("Delete this student?")) return;
 
     fetch(`${BASE_URL}/students/${id}`, { method: 'DELETE' })
       .then(() =>
-        setStudents(students.filter(s => String(s._id) !== String(id)))
+        setStudents(students.filter(s =>
+          String(s._id) !== String(id)
+        ))
       );
   };
 
-  // Student Login
   const handleStudentLogin = (e) => {
     e.preventDefault();
     const found = students.find(s =>
@@ -169,7 +156,6 @@ function App() {
     setStudentInput('');
   };
 
-  // Chart
   const chartDataFor = (student) => ({
     labels: ['Assess 1', 'Assess 2', 'End Sem'],
     datasets: [{
@@ -195,15 +181,34 @@ function App() {
 
   return (
     <div className="app-container">
+
       <nav className={`navbar ${navbarSolid ? 'solid' : 'transparent'}`}>
         <div className="nav-logo" onClick={() => { setCurrentPage('home'); setShowMore(false); }}>
           EDU<span>PORTAL</span>
         </div>
+
+        <ul className="nav-links">
+          {['home', 'admin', 'student', 'contact'].map((id) => (
+            <li key={id}>
+              <button
+                className={currentPage === id ? 'active' : ''}
+                onClick={() => { setCurrentPage(id); setShowMore(false); }}
+              >
+                {id.toUpperCase()}
+              </button>
+            </li>
+          ))}
+        </ul>
       </nav>
 
       <main className="main-content">
-        <h1 style={{ textAlign: "center" }}>EduPortal Connected to Cloud Backend 🚀</h1>
+        <h1 style={{ textAlign: "center" }}>EduPortal Cloud Connected 🚀</h1>
       </main>
+
+      <footer className="footer">
+        <p>Created by Fahmiya | ©️ 2026 EduPortal</p>
+      </footer>
+
     </div>
   );
 }
