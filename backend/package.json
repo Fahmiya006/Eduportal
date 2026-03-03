@@ -1,13 +1,19 @@
 {
-  "name": "backend",
+  "name": "eduportal-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend API for EduPortal",
   "main": "server.js",
+  "type": "commonjs",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
-  "keywords": [],
-  "author": "",
+  "author": "Tharun",
   "license": "ISC",
-  "type": "commonjs"
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.3.0"
+  }
 }
