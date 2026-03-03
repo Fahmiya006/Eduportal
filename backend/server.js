@@ -26,7 +26,7 @@ const server = http.createServer((req, res) => {
   }
 
   // POST new student
-  else if (req.url === '/students' && req.method === 'POST') {
+  else if (req.url === 'fetch('/students')' && req.method === 'POST') {
     let body = "";
     req.on('data', chunk => { body += chunk.toString(); });
     req.on('end', () => {
@@ -40,7 +40,7 @@ const server = http.createServer((req, res) => {
   }
 
   // PUT update student
-  else if (req.url.startsWith('/students/') && req.method === 'PUT') {
+  else if (req.url.startsWith(('/students/') && req.method === 'PUT') {
     const idToUpdate = req.url.split('/')[2];
     let body = "";
     req.on('data', chunk => { body += chunk.toString(); });

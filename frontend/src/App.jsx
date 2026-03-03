@@ -55,7 +55,7 @@ function App() {
 
   // Fetch students
   useEffect(() => {
-    fetch('http://135.235.193.177:5000/students')
+    fetch('http://135.235.193.177:5001/students')
       .then(res => res.json())
       .then(data => setStudents(data))
       .catch(err => console.error("Backend not reachable:", err));
@@ -118,7 +118,7 @@ function App() {
     };
 
     if (isEditing) {
-      fetch(`http://135.235.193.177:5000/students/${formData.id}`, {
+      fetch(`fetch('http://135.235.193.177:5001/students')/${formData.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -132,7 +132,7 @@ function App() {
         })
         .catch(err => alert("Error updating student: " + err));
     } else {
-      fetch('http://135.235.193.177:5000/students', {
+      fetch('http://135.235.193.177:5001/students', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -149,7 +149,7 @@ function App() {
   // Delete
   const handleDelete = (id) => {
     if (!window.confirm("Delete this student?")) return;
-    fetch(`http://135.235.193.177:5000/students/${id}`, { method: 'DELETE' })
+    fetch(`http://135.235.193.177:5001/students/${id}`, { method: 'DELETE' })
       .then(res => {
         if (res.ok) {
           setStudents(students.filter(s => String(s.id) !== String(id)));
