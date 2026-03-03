@@ -118,7 +118,7 @@ function App() {
     };
 
     if (isEditing) {
-      fetch(`fetch('http://135.235.193.177:5001/students')/${formData.id}`, {
+      fetch(`http://135.235.193.177:5001/students/${formData.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
