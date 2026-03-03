@@ -1,7 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 const FILE_PATH = path.join(__dirname, 'students.json');
 
 const getStudents = () => JSON.parse(fs.readFileSync(FILE_PATH, 'utf8'));
