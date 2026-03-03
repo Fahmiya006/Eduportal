@@ -166,27 +166,72 @@ function App() {
 
       <main className="main-content">
 
-        {/* HOME */}
-        {currentPage==='home' && (
-          <div className="hero fadeIn">
-            {!showMore ? (
-              <>
-                <h1>Welcome to Your <span>Future</span></h1>
-                <p>Academic excellence starts here.</p>
-                <button className="cta-btn" onClick={()=>setShowMore(true)}>
-                  Learn More
-                </button>
-              </>
-            ) : (
-              <>
-                <h2>Platform Insights</h2>
-                <button className="back-btn" onClick={()=>setShowMore(false)}>
-                  Go Back
-                </button>
-              </>
-            )}
+{/* HOME */}
+{currentPage === 'home' && (
+  <div className="hero fadeIn">
+
+    {!showMore && (
+      <div>
+        <h1>Welcome to Your <span>Future</span></h1>
+        <p>Academic excellence starts here.</p>
+
+        <button
+          className="cta-btn"
+          onClick={() => setShowMore(true)}
+        >
+          Learn More
+        </button>
+      </div>
+    )}
+
+    {showMore && (
+      <div className="extra-content fadeIn">
+
+        <h2>Platform <span>Insights</span></h2>
+
+        <div className="info-grid">
+          <div className="info-item">
+            <h3>🔐 Secure Access</h3>
+            <p>Admin dashboard protected with secure PIN authentication.</p>
           </div>
-        )}
+
+          <div className="info-item">
+            <h3>⚡ Real-Time Updates</h3>
+            <p>All grades are stored in cloud database and updated instantly.</p>
+          </div>
+
+          <div className="info-item">
+            <h3>📊 Performance Tracking</h3>
+            <p>Students can view visual progress charts for academic growth.</p>
+          </div>
+
+          <div className="info-item">
+            <h3>☁ Cloud Powered</h3>
+            <p>Powered by MongoDB Atlas, Render & Vercel deployment.</p>
+          </div>
+        </div>
+
+        <div className="learn-more-paragraph">
+          <p>
+            EduPortal bridges the gap between educators and students by
+            offering a transparent, efficient, and visually engaging
+            academic management system. Teachers manage records easily,
+            and students gain insight into their academic performance trends.
+          </p>
+        </div>
+
+        <button
+          className="back-btn"
+          onClick={() => setShowMore(false)}
+        >
+          Go Back
+        </button>
+
+      </div>
+    )}
+
+  </div>
+)}
 
         {/* ADMIN */}
         {currentPage==='admin' && (
