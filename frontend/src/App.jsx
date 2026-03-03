@@ -70,9 +70,7 @@ function App() {
 
   // Navbar scroll effect
   useEffect(() => {
-    const onScroll = () => {
-      setNavbarSolid(window.scrollY > 40);
-    };
+    const onScroll = () => setNavbarSolid(window.scrollY > 40);
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener('scroll', onScroll);
@@ -182,6 +180,7 @@ function App() {
   return (
     <div className="app-container">
 
+      {/* NAVBAR */}
       <nav className={`navbar ${navbarSolid ? 'solid' : 'transparent'}`}>
         <div className="nav-logo" onClick={() => { setCurrentPage('home'); setShowMore(false); }}>
           EDU<span>PORTAL</span>
@@ -201,8 +200,27 @@ function App() {
         </ul>
       </nav>
 
+      {/* MAIN */}
       <main className="main-content">
-        <h1 style={{ textAlign: "center" }}>EduPortal Cloud Connected 🚀</h1>
+
+        {/* HOME */}
+        {currentPage === 'home' && (
+          <div className="hero">
+            {!showMore ? (
+              <div className="fadeIn">
+                <h1>Welcome to Your <span>Future</span></h1>
+                <p>Academic excellence starts here.</p>
+                <button className="cta-btn" onClick={() => setShowMore(true)}>Learn More</button>
+              </div>
+            ) : (
+              <div className="extra-content fadeIn">
+                <h2>Platform <span>Insights</span></h2>
+                <button className="back-btn" onClick={() => setShowMore(false)}>Go Back</button>
+              </div>
+            )}
+          </div>
+        )}
+
       </main>
 
       <footer className="footer">
