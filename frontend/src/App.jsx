@@ -257,184 +257,218 @@ function App() {
 )}
 
         {/* ADMIN */}
-        {currentPage === "admin" && (
-          <div className="admin-container">
+       {currentPage === "admin" && (
+  <div className="admin-container fadeIn">
 
-            {!isAdminLoggedIn && (
-              <div className="login-card">
+    {!isAdminLoggedIn ? (
+      <div className="login-card">
+        <h2>Admin <span>Access</span></h2>
 
-                <h2>Admin Access</h2>
+        <input
+          type="password"
+          placeholder="Enter 4-Digit PIN"
+          className="login-input"
+          value={adminPinInput}
+          onChange={(e) => setAdminPinInput(e.target.value)}
+        />
 
-                <input
-                  type="password"
-                  placeholder="Enter PIN"
-                  value={adminPinInput}
-                  onChange={(e) => setAdminPinInput(e.target.value)}
-                />
+        <button
+          className="login-btn"
+          onClick={handleAdminLogin}
+        >
+          Enter Dashboard
+        </button>
+      </div>
+    ) : (
 
-                <button onClick={handleAdminLogin}>
-                  Enter
-                </button>
+      <div className="crud-section">
 
-              </div>
-            )}
+        <h2>Student <span>Registry</span></h2>
 
-            {isAdminLoggedIn && (
-              <div>
+        <form onSubmit={handleAdminCRUD} className="crud-form">
 
-                <h2>Student Registry</h2>
+          <input
+            placeholder="Name"
+            value={formData.name}
+            onChange={(e)=>setFormData({...formData,name:e.target.value})}
+            required
+          />
 
-                <form onSubmit={handleAddStudent} className="crud-form">
+          <input
+            placeholder="Email"
+            value={formData.email}
+            onChange={(e)=>setFormData({...formData,email:e.target.value})}
+            required
+          />
 
-                  <input
-                    placeholder="Name"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })}
-                  />
+          <input
+            placeholder="Assess 1"
+            value={formData.assess1}
+            onChange={(e)=>setFormData({...formData,assess1:e.target.value})}
+            required
+          />
 
-                  <input
-                    placeholder="Email"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })}
-                  />
+          <input
+            placeholder="Assess 2"
+            value={formData.assess2}
+            onChange={(e)=>setFormData({...formData,assess2:e.target.value})}
+            required
+          />
 
-                  <input
-                    placeholder="Assess1"
-                    value={formData.assess1}
-                    onChange={(e) =>
-                      setFormData({ ...formData, assess1: e.target.value })}
-                  />
+          <input
+            placeholder="End Sem"
+            value={formData.endSem}
+            onChange={(e)=>setFormData({...formData,endSem:e.target.value})}
+            required
+          />
 
-                  <input
-                    placeholder="Assess2"
-                    value={formData.assess2}
-                    onChange={(e) =>
-                      setFormData({ ...formData, assess2: e.target.value })}
-                  />
+          <button type="submit" className="cta-btn">
+            {isEditing ? "Update Student" : "Add Student"}
+          </button>
 
-                  <input
-                    placeholder="EndSem"
-                    value={formData.endSem}
-                    onChange={(e) =>
-                      setFormData({ ...formData, endSem: e.target.value })}
-                  />
+        </form>
 
-                  <button type="submit">
-                    {isEditing ? "Update Student" : "Add Student"}
-                  </button>
+        <div className="table-container">
 
-                </form>
+          <table className="student-table">
 
-                <table className="student-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>A1</th>
-                      <th>A2</th>
-                      <th>End</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Assess1</th>
+                <th>Assess2</th>
+                <th>EndSem</th>
+                <th>Action</th>
+              </tr>
+            </thead>
 
-                  <tbody>
-                    {students.map((s) => (
-                      <tr key={s.id}>
-                        <td>{s.name}</td>
-                        <td>{s.email}</td>
-                        <td>{s.assess1}</td>
-                        <td>{s.assess2}</td>
-                        <td>{s.endSem}</td>
+            <tbody>
 
-                        <td>
-                          <button
-                            onClick={() => {
-                              setIsEditing(true);
-                              setEditId(s.id);
-                              setFormData(s);
-                            }}
-                          >
-                            Edit
-                          </button>
+              {students.map((s)=>(
+                <tr key={s.id}>
 
-                          <button
-                            onClick={() => handleDelete(s.id)}
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
+                  <td>{s.name}</td>
+                  <td>{s.email}</td>
+                  <td className="emerald-text">{s.assess1}</td>
+                  <td className="emerald-text">{s.assess2}</td>
+                  <td className="emerald-text">{s.endSem}</td>
 
-                </table>
+                  <td>
 
-              </div>
-            )}
+                    <button
+                      className="edit-link"
+                      onClick={()=>{
+                        setFormData(s)
+                        setIsEditing(true)
+                      }}
+                    >
+                      Edit
+                    </button>
 
-          </div>
-        )}
+                    <button
+                      className="delete-link"
+                      onClick={()=>handleDelete(s.id)}
+                    >
+                      Delete
+                    </button>
+
+                  </td>
+
+                </tr>
+              ))}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+        <button
+          className="back-btn"
+          onClick={logout}
+          style={{marginTop:"20px"}}
+        >
+          Logout Admin
+        </button>
+
+      </div>
+    )}
+
+  </div>
+)}
 
         {/* STUDENT */}
-        {currentPage === "student" && (
-          <div className="student-container">
+{currentPage === "student" && (
+  <div className="student-container fadeIn">
 
-            {!currentStudent && (
-              <form onSubmit={handleStudentLogin} className="login-card">
+    {!currentStudent ? (
 
-                <h2>Student Portal</h2>
+      <div className="login-card">
 
-                <input
-                  placeholder="Enter Name"
-                  value={studentInput}
-                  onChange={(e) => setStudentInput(e.target.value)}
-                />
+        <h2>Student <span>Portal</span></h2>
 
-                <button type="submit">
-                  Check Grades
-                </button>
+        <form onSubmit={handleStudentLogin}>
 
-              </form>
-            )}
+          <input
+            placeholder="Enter Registered Name"
+            value={studentInput}
+            onChange={(e)=>setStudentInput(e.target.value)}
+            required
+          />
 
-            {currentStudent && (
-              <div className="student-dashboard">
+          <button type="submit" className="login-btn">
+            Check Grades
+          </button>
 
-                <h2>
-                  Report Card — <span>{currentStudent.name}</span>
-                </h2>
+        </form>
 
-                <div className="report-card">
-                  <p>Assess 1 : {currentStudent.assess1}</p>
-                  <p>Assess 2 : {currentStudent.assess2}</p>
-                  <p>End Sem : {currentStudent.endSem}</p>
-                </div>
+      </div>
 
-                <div className="chart-card">
+    ) : (
 
-                  {renderTrend(currentStudent)}
-
-                  <Line
-                    data={chartData(currentStudent)}
-                    options={chartOptions}
-                  />
-
-                </div>
-
-                <button
-                  className="back-btn"
-                  onClick={() => setCurrentStudent(null)}
-                >
-                  Sign Out
-                </button>
-
-              </div>
-            )}
-
+      <div className="student-dashboard">
+        <h2>
+          Report Card — <span>{currentStudent.name}</span>
+        </h2>
+        <div className="report-grid">
+          <div className="report-card">
+            <h3>Grades</h3>
+            <div className="grade-row">
+              <span>Assess 1</span>
+              <strong>{currentStudent.assess1}</strong>
+            </div>
+            <div className="grade-row">
+              <span>Assess 2</span>
+              <strong>{currentStudent.assess2}</strong>
+            </div>
+            <div className="grade-row">
+              <span>End Sem</span>
+              <strong>{currentStudent.endSem}</strong>
+            </div>
           </div>
-        )}
+          <div className="chart-card">
+            <h3>Progress</h3>
+            {renderTrend(currentStudent)}
+            <Line
+              data={chartDataFor(currentStudent)}
+              options={chartOptions}
+            />
+          </div>
+        </div>
+        <button
+          className="back-btn"
+          onClick={()=>setCurrentStudent(null)}
+        >
+          Sign Out
+        </button>
+
+      </div>
+
+    )}
+
+  </div>
+)}
 
         {/* CONTACT */}
         {currentPage === "contact" && (
