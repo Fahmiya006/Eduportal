@@ -318,27 +318,56 @@ function App() {
           </div>
         )}
 
-        {/* STUDENT */}
-        {currentPage==='student' && (
-          <div className="student-container fadeIn">
-            {!currentStudent ? (
-              <div className="login-card">
-                <h2>Student Portal</h2>
-                <form onSubmit={(e)=>{
-                  e.preventDefault();
-                  const found=students.find(s=>
-                    s.name.toLowerCase()===studentInput.toLowerCase());
-                  if(found) setCurrentStudent(found);
-                  else alert("Record not found!");
-                }}>
-                  <input
-                    placeholder="Enter Registered Name"
-                    value={studentInput}
-                    onChange={e=>setStudentInput(e.target.value)} required />
-                  <button className="login-btn">Check Grades</button>
-                </form>
-              </div>
-            ) : (
+    {currentStudent ? (
+  <div className="student-dashboard">
+
+    <h2>
+      Report Card — <span>{currentStudent.name}</span>
+    </h2>
+
+    <div className="report-grid">
+
+      {/* GRADES CARD */}
+      <div className="report-card">
+        <h3>Grades</h3>
+
+        <div className="grade-row">
+          <span>Assess 1</span>
+          <strong>{String(currentStudent.assess1).toUpperCase()}</strong>
+        </div>
+
+        <div className="grade-row">
+          <span>Assess 2</span>
+          <strong>{String(currentStudent.assess2).toUpperCase()}</strong>
+        </div>
+
+        <div className="grade-row">
+          <span>End Sem</span>
+          <strong>{String(currentStudent.endSem).toUpperCase()}</strong>
+        </div>
+      </div>
+
+      {/* CHART CARD */}
+      <div className="chart-card">
+        <h3 style={{ marginBottom: 10 }}>Progress</h3>
+
+        <Line
+          data={chartDataFor(currentStudent)}
+          options={chartOptions}
+        />
+      </div>
+
+    </div>
+
+    <button
+      className="back-btn"
+      onClick={() => setCurrentStudent(null)}
+    >
+      Sign Out
+    </button>
+
+  </div>
+) : (
               <div className="student-dashboard">
                 <h2>{currentStudent.name}</h2>
                 <Line data={chartDataFor(currentStudent)} options={chartOptions}/>
