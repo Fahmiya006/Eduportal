@@ -264,129 +264,155 @@ Go Back
 )}
 {/* ADMIN */}
 {currentPage === "admin" && (
-<div className="admin-container">
-{!isAdminLoggedIn ? (
-<div className="login-card">
-<h2>Admin Access</h2>
+  <div className="admin-container fadeIn">
 
-<input
-type="password"
-placeholder="Enter PIN"
-value={adminPinInput}
-onChange={e => setAdminPinInput(e.target.value)}
-/>
+    {!isAdminLoggedIn ? (
+      <div className="login-card">
 
-<button className="login-btn" onClick={handleAdminLogin}>
-Enter
-</button>
-</div>
-) : (
-<div className="crud-section">
-<h2>Student Registry</h2>
+        <h2>Admin <span>Access</span></h2>
 
-<form className="crud-form" onSubmit={handleAdminCRUD}>
-<input
-placeholder="Name"
-value={formData.name}
-onChange={e =>
-setFormData({ ...formData, name: e.target.value })
-}
-/>
+        <input
+          type="password"
+          placeholder="Enter 4-Digit PIN"
+          className="login-input"
+          value={adminPinInput}
+          onChange={(e) => setAdminPinInput(e.target.value)}
+        />
 
-<input
-placeholder="Email"
-value={formData.email}
-onChange={e =>
-setFormData({ ...formData, email: e.target.value })
-}
-/>
+        <button
+          className="login-btn"
+          onClick={handleAdminLogin}
+        >
+          Enter Dashboard
+        </button>
 
-<input
-placeholder="Assess1"
-value={formData.assess1}
-onChange={e =>
-setFormData({
-...formData,
-assess1: e.target.value
-})
-}
-/>
+      </div>
+    ) : (
 
-<input
-placeholder="Assess2"
-value={formData.assess2}
-onChange={e =>
-setFormData({
-...formData,
-assess2: e.target.value
-})
-}
-/>
+      <div className="crud-section">
 
-<input
-placeholder="EndSem"
-value={formData.endSem}
-onChange={e =>
-setFormData({
-...formData,
-endSem: e.target.value
-})
-}
-/>
+        <h2>Student <span>Registry</span></h2>
 
-<button className="cta-btn">
-{isEditing ? "Update" : "Add"}
-</button>
-</form>
+        <form onSubmit={handleAdminCRUD} className="crud-form">
 
-<table className="student-table">
-<thead>
-<tr>
-<th>Name</th>
-<th>Email</th>
-<th>A1</th>
-<th>A2</th>
-<th>End</th>
-<th>Action</th>
-</tr>
-</thead>
+          <input
+            placeholder="Name"
+            value={formData.name}
+            onChange={(e)=>setFormData({...formData,name:e.target.value})}
+            required
+          />
 
-<tbody>
-{students.map(s => (
-<tr key={s._id}>
-<td>{s.name}</td>
-<td>{s.email}</td>
-<td>{s.assess1}</td>
-<td>{s.assess2}</td>
-<td>{s.endSem}</td>
+          <input
+            placeholder="Email"
+            value={formData.email}
+            onChange={(e)=>setFormData({...formData,email:e.target.value})}
+            required
+          />
 
-<td>
-<button
-className="edit-link"
-onClick={() => {
-setFormData({ ...s, id: s._id });
-setIsEditing(true);
-}}
->
-Edit
-</button>
+          <input
+            placeholder="Assess 1"
+            value={formData.assess1}
+            onChange={(e)=>setFormData({...formData,assess1:e.target.value})}
+            required
+          />
 
-<button
-className="delete-link"
-onClick={() => handleDelete(s._id)}
->
-Delete
-</button>
-</td>
-</tr>
-))}
-</tbody>
-</table>
-</div>
+          <input
+            placeholder="Assess 2"
+            value={formData.assess2}
+            onChange={(e)=>setFormData({...formData,assess2:e.target.value})}
+            required
+          />
+
+          <input
+            placeholder="End Sem"
+            value={formData.endSem}
+            onChange={(e)=>setFormData({...formData,endSem:e.target.value})}
+            required
+          />
+
+          <button type="submit" className="cta-btn">
+            {isEditing ? "Update Student" : "Add Student"}
+          </button>
+
+        </form>
+
+        <div className="table-container">
+
+          <table className="student-table">
+
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Assess1</th>
+                <th>Assess2</th>
+                <th>EndSem</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              {students.map((s)=>(
+                <tr key={s.id}>
+
+                  <td>{s.name}</td>
+                  <td>{s.email}</td>
+                  <td className="emerald-text">{s.assess1}</td>
+                  <td className="emerald-text">{s.assess2}</td>
+                  <td className="emerald-text">{s.endSem}</td>
+
+                  <td>
+
+                    <button
+                      className="edit-link"
+                      onClick={()=>{
+                        setFormData({
+                          id:s.id,
+                          name:s.name,
+                          email:s.email,
+                          assess1:s.assess1,
+                          assess2:s.assess2,
+                          endSem:s.endSem
+                        })
+                        setIsEditing(true)
+                      }}
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      className="delete-link"
+                      onClick={()=>handleDelete(s.id)}
+                    >
+                      Delete
+                    </button>
+
+                  </td>
+
+                </tr>
+              ))}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+        <button
+          className="back-btn"
+          onClick={logout}
+          style={{marginTop:"20px"}}
+        >
+          Logout Admin
+        </button>
+
+      </div>
+
+    )}
+
+  </div>
 )}
-</div>
-)}
-
 {/* STUDENT */}
 {currentPage === "student" && (
 <div className="student-container">
