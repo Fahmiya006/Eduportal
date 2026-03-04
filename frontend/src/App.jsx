@@ -32,6 +32,7 @@ return map[String(grade).toUpperCase()] ?? 0;
 }
 
 function App() {
+
 const [currentPage, setCurrentPage] = useState("home");
 const [showMore, setShowMore] = useState(false);
 const [navbarSolid, setNavbarSolid] = useState(false);
@@ -44,142 +45,171 @@ const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
 const [adminPinInput, setAdminPinInput] = useState("");
 
 const [formData, setFormData] = useState({
-id: null,
-name: "",
-email: "",
-assess1: "",
-assess2: "",
-endSem: ""
+id:null,
+name:"",
+email:"",
+assess1:"",
+assess2:"",
+endSem:""
 });
 
-const [isEditing, setIsEditing] = useState(false);
+const [isEditing,setIsEditing]=useState(false);
 
-// GET STUDENTS
-useEffect(() => {
+useEffect(()=>{
 fetch(`${API}/students`)
-.then(res => res.json())
-.then(data => setStudents(data))
-.catch(err => console.log(err));
-}, []);
+.then(res=>res.json())
+.then(data=>setStudents(data))
+.catch(err=>console.log(err))
+},[])
 
-// NAVBAR SCROLL
-useEffect(() => {
-const onScroll = () => setNavbarSolid(window.scrollY > 40);
-window.addEventListener("scroll", onScroll);
-return () => window.removeEventListener("scroll", onScroll);
-}, []);
+useEffect(()=>{
+const onScroll=()=>setNavbarSolid(window.scrollY>40)
+window.addEventListener("scroll",onScroll)
+return()=>window.removeEventListener("scroll",onScroll)
+},[])
 
-// ADMIN LOGIN
-const handleAdminLogin = () => {
-if (adminPinInput === "4036") {
-setIsAdminLoggedIn(true);
-setAdminPinInput("");
-} else {
-alert("Incorrect PIN");
+const logout=()=>{
+setIsAdminLoggedIn(false)
+setCurrentStudent(null)
+setStudentInput("")
 }
-};
 
-// ADD / UPDATE STUDENT
-const handleAdminCRUD = e => {
-e.preventDefault();
+const handleAdminLogin=()=>{
+if(adminPinInput==="4036"){
+setIsAdminLoggedIn(true)
+setAdminPinInput("")
+}else{
+alert("Incorrect PIN")
+}
+}
 
-const payload = {
-name: formData.name,
-email: formData.email,
-assess1: formData.assess1.toUpperCase(),
-assess2: formData.assess2.toUpperCase(),
-endSem: formData.endSem.toUpperCase()
-};
+const handleAdminCRUD=(e)=>{
+e.preventDefault()
 
-if (isEditing) {
-fetch(`${API}/students/${formData.id}`, {
-method: "PUT",
-headers: { "Content-Type": "application/json" },
-body: JSON.stringify(payload)
-}).then(() => {
-setStudents(
-students.map(s =>
-s._id === formData.id ? { ...s, ...payload } : s
-)
-);
-setIsEditing(false);
-});
-} else {
-fetch(`${API}/students`, {
-method: "POST",
-headers: { "Content-Type": "application/json" },
-body: JSON.stringify(payload)
+const payload={
+name:formData.name,
+email:formData.email,
+assess1:formData.assess1.toUpperCase(),
+assess2:formData.assess2.toUpperCase(),
+endSem:formData.endSem.toUpperCase()
+}
+
+if(isEditing){
+
+fetch(`${API}/students/${formData.id}`,{
+method:"PUT",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(payload)
+}).then(()=>{
+setStudents(students.map(s=>
+s._id===formData.id?{...s,...payload}:s
+))
+setIsEditing(false)
 })
-.then(res => res.json())
-.then(newStudent => setStudents([...students, newStudent]));
+
+}else{
+
+fetch(`${API}/students`,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(payload)
+})
+.then(res=>res.json())
+.then(newStudent=>setStudents([...students,newStudent]))
+
 }
 
 setFormData({
-id: null,
-name: "",
-email: "",
-assess1: "",
-assess2: "",
-endSem: ""
-});
-};
+id:null,
+name:"",
+email:"",
+assess1:"",
+assess2:"",
+endSem:""
+})
+}
 
-// DELETE
-const handleDelete = id => {
-fetch(`${API}/students/${id}`, { method: "DELETE" }).then(() =>
-setStudents(students.filter(s => s._id !== id))
-);
-};
+const handleDelete=(id)=>{
+fetch(`${API}/students/${id}`,{method:"DELETE"})
+.then(()=>setStudents(students.filter(s=>s._id!==id)))
+}
 
-// STUDENT LOGIN
-const handleStudentLogin = e => {
-e.preventDefault();
-const found = students.find(
-s => s.name.toLowerCase() === studentInput.toLowerCase()
-);
-if (found) setCurrentStudent(found);
-else alert("Student not found");
-};
+const handleStudentLogin=(e)=>{
+e.preventDefault()
+const found=students.find(s=>
+s.name.toLowerCase()===studentInput.toLowerCase()
+)
 
-// CHART
-const chartData = student => ({
-labels: ["Assess 1", "Assess 2", "End Sem"],
-datasets: [
+if(found)setCurrentStudent(found)
+else alert("Student not found")
+}
+
+const chartData=(student)=>({
+labels:["Assess 1","Assess 2","End Sem"],
+datasets:[
 {
-label: "Performance",
-data: [
+label:"Performance",
+data:[
 gradeToValue(student.assess1),
 gradeToValue(student.assess2),
 gradeToValue(student.endSem)
 ],
-fill: true,
-borderColor: "#50c878",
-backgroundColor: "rgba(80,200,120,0.1)"
+fill:true,
+borderColor:"#50c878",
+backgroundColor:"rgba(80,200,120,0.1)"
 }
 ]
-});
+})
 
-const chartOptions = {
-responsive: true,
-scales: {
-y: { beginAtZero: true, max: 10 }
+const chartOptions={
+responsive:true,
+scales:{
+y:{beginAtZero:true,max:10}
 }
-};
+}
 
-return (
+const renderTrend=(student)=>{
+
+const start=gradeToValue(student.assess1)
+const end=gradeToValue(student.endSem)
+
+const percent=((end-start)/(start||1))*100
+const value=Math.abs(percent).toFixed(1)
+
+let arrow="▬"
+let color="#aaa"
+
+if(percent>0){
+arrow="▲"
+color="#50c878"
+}
+
+if(percent<0){
+arrow="▼"
+color="#ff6b6b"
+}
+
+return(
+<div style={{marginBottom:"10px",fontWeight:"600",color}}>
+{arrow} {value}% since Assess 1
+</div>
+)
+}
+
+return(
 <div className="app-container">
-{/* NAVBAR */}
-<nav className={`navbar ${navbarSolid ? "solid" : ""}`}>
-<div className="nav-logo" onClick={() => setCurrentPage("home")}>
+
+<nav className={`navbar ${navbarSolid?"solid":""}`}>
+<div className="nav-logo" onClick={()=>setCurrentPage("home")}>
 EDU<span>PORTAL</span>
 </div>
 
 <ul className="nav-links">
-{["home", "admin", "student", "contact"].map(p => (
+{["home","admin","student","contact"].map(p=>(
 <li key={p}>
 <button
-className={currentPage === p ? "active" : ""}
-onClick={() => setCurrentPage(p)}
+className={currentPage===p?"active":""}
+onClick={()=>setCurrentPage(p)}
 >
 {p.toUpperCase()}
 </button>
@@ -189,37 +219,31 @@ onClick={() => setCurrentPage(p)}
 </nav>
 
 <main className="main-content">
-      
-     {/* HOME */}
-{currentPage === "home" && (
-  <div className="hero fadeIn">
 
-    {!showMore && (
-      <div>
-        <h1>
-          Welcome to <span>EduPortal</span>
-        </h1>
+{currentPage==="home"&&(
+<div className="hero fadeIn">
 
-        <p>
-          Academic excellence starts here. Track grades, visualize progress,
-          and manage students effortlessly.
-        </p>
+{!showMore&&(
+<div>
+<h1>Welcome to <span>EduPortal</span></h1>
+<p>Academic excellence starts here.</p>
 
-        <button
-          className="cta-btn"
-          onClick={() => setShowMore(true)}
-        >
-          Learn More
-        </button>
-      </div>
-    )}
+<button
+className="cta-btn"
+onClick={()=>setShowMore(true)}
+>
+Learn More
+</button>
+</div>
+)}
 
-    {showMore && (
+{showMore&&(
 <div className="extra-content fadeIn">
 
 <h2>Platform <span>Insights</span></h2>
 
 <div className="info-grid">
+
 <div className="info-item">
 <h3>🔐 Secure Access</h3>
 <p>Admin dashboard protected with secure PIN authentication.</p>
@@ -239,21 +263,10 @@ onClick={() => setCurrentPage(p)}
 <h3>☁ Cloud Powered</h3>
 <p>Powered by MongoDB Atlas, Render & Vercel deployment.</p>
 </div>
+
 </div>
 
-<div className="learn-more-paragraph">
-<p>
-EduPortal bridges the gap between educators and students by
-offering a transparent, efficient, and visually engaging
-academic management system. Teachers manage records easily,
-and students gain insight into their academic performance trends.
-</p>
-</div>
-
-<button
-className="back-btn"
-onClick={() => setShowMore(false)}
->
+<button className="back-btn" onClick={()=>setShowMore(false)}>
 Go Back
 </button>
 
@@ -262,184 +275,184 @@ Go Back
 
 </div>
 )}
-{/* ADMIN */}
-{currentPage === "admin" && (
-  <div className="admin-container fadeIn">
 
-    {!isAdminLoggedIn ? (
-      <div className="login-card">
+{currentPage==="admin"&&(
+<div className="admin-container fadeIn">
 
-        <h2>Admin <span>Access</span></h2>
-
-        <input
-          type="password"
-          placeholder="Enter 4-Digit PIN"
-          className="login-input"
-          value={adminPinInput}
-          onChange={(e) => setAdminPinInput(e.target.value)}
-        />
-
-        <button
-          className="login-btn"
-          onClick={handleAdminLogin}
-        >
-          Enter Dashboard
-        </button>
-
-      </div>
-    ) : (
-
-      <div className="crud-section">
-
-        <h2>Student <span>Registry</span></h2>
-
-        <form onSubmit={handleAdminCRUD} className="crud-form">
-
-          <input
-            placeholder="Name"
-            value={formData.name}
-            onChange={(e)=>setFormData({...formData,name:e.target.value})}
-            required
-          />
-
-          <input
-            placeholder="Email"
-            value={formData.email}
-            onChange={(e)=>setFormData({...formData,email:e.target.value})}
-            required
-          />
-
-          <input
-            placeholder="Assess 1"
-            value={formData.assess1}
-            onChange={(e)=>setFormData({...formData,assess1:e.target.value})}
-            required
-          />
-
-          <input
-            placeholder="Assess 2"
-            value={formData.assess2}
-            onChange={(e)=>setFormData({...formData,assess2:e.target.value})}
-            required
-          />
-
-          <input
-            placeholder="End Sem"
-            value={formData.endSem}
-            onChange={(e)=>setFormData({...formData,endSem:e.target.value})}
-            required
-          />
-
-          <button type="submit" className="cta-btn">
-            {isEditing ? "Update Student" : "Add Student"}
-          </button>
-
-        </form>
-
-        <div className="table-container">
-
-          <table className="student-table">
-
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Assess1</th>
-                <th>Assess2</th>
-                <th>EndSem</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-
-            <tbody>
-
-              {students.map((s)=>(
-                <tr key={s.id}>
-
-                  <td>{s.name}</td>
-                  <td>{s.email}</td>
-                  <td className="emerald-text">{s.assess1}</td>
-                  <td className="emerald-text">{s.assess2}</td>
-                  <td className="emerald-text">{s.endSem}</td>
-
-                  <td>
-
-                    <button
-                      className="edit-link"
-                      onClick={()=>{
-                        setFormData({
-                          id:s.id,
-                          name:s.name,
-                          email:s.email,
-                          assess1:s.assess1,
-                          assess2:s.assess2,
-                          endSem:s.endSem
-                        })
-                        setIsEditing(true)
-                      }}
-                    >
-                      Edit
-                    </button>
-
-                    <button
-                      className="delete-link"
-                      onClick={()=>handleDelete(s.id)}
-                    >
-                      Delete
-                    </button>
-
-                  </td>
-
-                </tr>
-              ))}
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-        <button
-          className="back-btn"
-          onClick={logout}
-          style={{marginTop:"20px"}}
-        >
-          Logout Admin
-        </button>
-
-      </div>
-
-    )}
-
-  </div>
-)}
-{/* STUDENT */}
-{currentPage === "student" && (
-<div className="student-container">
-{!currentStudent ? (
+{!isAdminLoggedIn?(
 <div className="login-card">
+
+<h2>Admin <span>Access</span></h2>
+
+<input
+type="password"
+placeholder="Enter 4-Digit PIN"
+className="login-input"
+value={adminPinInput}
+onChange={(e)=>setAdminPinInput(e.target.value)}
+/>
+
+<button
+className="login-btn"
+onClick={handleAdminLogin}
+>
+Enter Dashboard
+</button>
+
+</div>
+
+):(
+
+<div className="crud-section">
+
+<h2>Student <span>Registry</span></h2>
+
+<form onSubmit={handleAdminCRUD} className="crud-form">
+
+<input
+placeholder="Name"
+value={formData.name}
+onChange={(e)=>setFormData({...formData,name:e.target.value})}
+/>
+
+<input
+placeholder="Email"
+value={formData.email}
+onChange={(e)=>setFormData({...formData,email:e.target.value})}
+/>
+
+<input
+placeholder="Assess 1"
+value={formData.assess1}
+onChange={(e)=>setFormData({...formData,assess1:e.target.value})}
+/>
+
+<input
+placeholder="Assess 2"
+value={formData.assess2}
+onChange={(e)=>setFormData({...formData,assess2:e.target.value})}
+/>
+
+<input
+placeholder="End Sem"
+value={formData.endSem}
+onChange={(e)=>setFormData({...formData,endSem:e.target.value})}
+/>
+
+<button className="cta-btn">
+{isEditing?"Update Student":"Add Student"}
+</button>
+
+</form>
+
+<div className="table-container">
+
+<table className="student-table">
+
+<thead>
+<tr>
+<th>Name</th>
+<th>Email</th>
+<th>Assess1</th>
+<th>Assess2</th>
+<th>EndSem</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody>
+
+{students.map(s=>(
+<tr key={s._id}>
+
+<td>{s.name}</td>
+<td>{s.email}</td>
+<td className="emerald-text">{s.assess1}</td>
+<td className="emerald-text">{s.assess2}</td>
+<td className="emerald-text">{s.endSem}</td>
+
+<td>
+
+<button
+className="edit-link"
+onClick={()=>{
+setFormData({
+id:s._id,
+name:s.name,
+email:s.email,
+assess1:s.assess1,
+assess2:s.assess2,
+endSem:s.endSem
+})
+setIsEditing(true)
+}}
+>
+Edit
+</button>
+
+<button
+className="delete-link"
+onClick={()=>handleDelete(s._id)}
+>
+Delete
+</button>
+
+</td>
+
+</tr>
+))}
+
+</tbody>
+
+</table>
+
+</div>
+
+<button className="back-btn" onClick={logout}>
+Logout Admin
+</button>
+
+</div>
+
+)}
+
+</div>
+)}
+
+{currentPage==="student"&&(
+<div className="student-container">
+
+{!currentStudent?(
+<div className="login-card">
+
 <h2>Student Portal</h2>
 
 <form onSubmit={handleStudentLogin}>
+
 <input
 placeholder="Enter Registered Name"
 value={studentInput}
-onChange={e => setStudentInput(e.target.value)}
+onChange={(e)=>setStudentInput(e.target.value)}
 />
 
 <button className="login-btn">
 Check Grades
 </button>
+
 </form>
+
 </div>
-) : (
+
+):(
+
 <div className="student-dashboard">
-<h2>
-Report Card — <span>{currentStudent.name}</span>
-</h2>
+
+<h2>Report Card — <span>{currentStudent.name}</span></h2>
 
 <div className="report-grid">
+
 <div className="report-card">
+
 <h3>Grades</h3>
 
 <div className="grade-row">
@@ -456,41 +469,53 @@ Report Card — <span>{currentStudent.name}</span>
 <span>End Sem</span>
 <strong>{currentStudent.endSem}</strong>
 </div>
+
 </div>
 
 <div className="chart-card">
+
+<h3>Progress</h3>
+
+{renderTrend(currentStudent)}
+
 <Line
 data={chartData(currentStudent)}
 options={chartOptions}
 />
+
 </div>
+
 </div>
 
 <button
 className="back-btn"
-onClick={() => setCurrentStudent(null)}
+onClick={()=>setCurrentStudent(null)}
 >
 Sign Out
 </button>
+
 </div>
+
 )}
+
 </div>
 )}
 
-{/* CONTACT */}
-{currentPage === "contact" && (
+{currentPage==="contact"&&(
 <div className="contact-section">
 <h2>Get in Touch</h2>
 <p>Email: support@eduportal.com</p>
 </div>
 )}
+
 </main>
 
 <footer className="footer">
-Created by Fahmiya | © 2026 EduPortal
+Created by Fahmiya | ©️ 2026 EduPortal
 </footer>
+
 </div>
-);
+)
 }
 
-export default App;
+export default App
