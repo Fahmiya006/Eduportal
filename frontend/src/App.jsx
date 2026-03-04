@@ -6,7 +6,6 @@ import {
   LinearScale,
   PointElement,
   LineElement,
-  Title,
   Tooltip,
   Legend,
   Filler
@@ -18,33 +17,32 @@ ChartJS.register(
   LinearScale,
   PointElement,
   LineElement,
-  Title,
   Tooltip,
   Legend,
   Filler
 );
 
-const API = "https://eduportal-1-7dk7.onrender.com";
+const API = "https://eduportal-1-7dk7.onrender.com/students";
 
-function gradeToValue(grade) {
+function gradeToValue(g) {
   const map = { S: 10, "A+": 9, A: 8, "B+": 7, B: 6, "C+": 5, C: 4, U: 0 };
-  return map[String(grade).toUpperCase()] ?? 0;
+  return map[g?.toUpperCase()] ?? 0;
 }
 
 function App() {
+
   const [currentPage, setCurrentPage] = useState("home");
   const [showMore, setShowMore] = useState(false);
-  const [navbarSolid, setNavbarSolid] = useState(false);
 
   const [students, setStudents] = useState([]);
-  const [currentStudent, setCurrentStudent] = useState(null);
-  const [studentInput, setStudentInput] = useState("");
 
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [adminPinInput, setAdminPinInput] = useState("");
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+
+  const [studentInput, setStudentInput] = useState("");
+  const [currentStudent, setCurrentStudent] = useState(null);
 
   const [formData, setFormData] = useState({
-    id: null,
     name: "",
     email: "",
     assess1: "",
@@ -53,96 +51,68 @@ function App() {
   });
 
   const [isEditing, setIsEditing] = useState(false);
+  const [editId, setEditId] = useState(null);
 
-  // GET STUDENTS
   useEffect(() => {
-    fetch(`${API}/students`)
+    fetch(API)
       .then(res => res.json())
       .then(data => setStudents(data))
-      .catch(err => console.log(err));
+      .catch(() => console.log("Backend not reachable"));
   }, []);
 
-  // NAVBAR SCROLL
-  useEffect(() => {
-    const onScroll = () => setNavbarSolid(window.scrollY > 40);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  // ADMIN LOGIN
   const handleAdminLogin = () => {
     if (adminPinInput === "4036") {
       setIsAdminLoggedIn(true);
-      setAdminPinInput("");
     } else {
       alert("Incorrect PIN");
     }
   };
 
-  // ADD / UPDATE STUDENT
-  const handleAdminCRUD = e => {
+  const handleAddStudent = (e) => {
     e.preventDefault();
 
     const payload = {
       name: formData.name,
       email: formData.email,
-      assess1: formData.assess1.toUpperCase(),
-      assess2: formData.assess2.toUpperCase(),
-      endSem: formData.endSem.toUpperCase()
+      assess1: formData.assess1,
+      assess2: formData.assess2,
+      endSem: formData.endSem
     };
 
     if (isEditing) {
-      fetch(`${API}/students/${formData.id}`, {
+      fetch(`${API}/${editId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
-      }).then(() => {
-        setStudents(
-          students.map(s =>
-            s._id === formData.id ? { ...s, ...payload } : s
-          )
-        );
-        setIsEditing(false);
-      });
+      })
+        .then(() => window.location.reload());
     } else {
-      fetch(`${API}/students`, {
+      fetch(API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       })
-        .then(res => res.json())
-        .then(newStudent => setStudents([...students, newStudent]));
+        .then(() => window.location.reload());
     }
-
-    setFormData({
-      id: null,
-      name: "",
-      email: "",
-      assess1: "",
-      assess2: "",
-      endSem: ""
-    });
   };
 
-  // DELETE
-  const handleDelete = id => {
-    fetch(`${API}/students/${id}`, { method: "DELETE" }).then(() =>
-      setStudents(students.filter(s => s._id !== id))
-    );
+  const handleDelete = (id) => {
+    fetch(`${API}/${id}`, { method: "DELETE" })
+      .then(() => window.location.reload());
   };
 
-  // STUDENT LOGIN
-  const handleStudentLogin = e => {
+  const handleStudentLogin = (e) => {
     e.preventDefault();
+
     const found = students.find(
       s => s.name.toLowerCase() === studentInput.toLowerCase()
     );
+
     if (found) setCurrentStudent(found);
     else alert("Student not found");
   };
 
-  // CHART
-  const chartData = student => ({
+  const chartData = (student) => ({
     labels: ["Assess 1", "Assess 2", "End Sem"],
     datasets: [
       {
@@ -152,9 +122,9 @@ function App() {
           gradeToValue(student.assess2),
           gradeToValue(student.endSem)
         ],
-        fill: true,
         borderColor: "#50c878",
-        backgroundColor: "rgba(80,200,120,0.1)"
+        backgroundColor: "rgba(80,200,120,0.2)",
+        fill: true
       }
     ]
   });
@@ -162,66 +132,58 @@ function App() {
   const chartOptions = {
     responsive: true,
     scales: {
-      y: { beginAtZero: true, max: 10 }
+      y: {
+        min: 0,
+        max: 10
+      }
     }
   };
-  function renderTrend(student) {
 
-  const start = gradeToValue(student.assess1);
-  const end = gradeToValue(student.endSem);
+  const renderTrend = (student) => {
+    const start = gradeToValue(student.assess1);
+    const end = gradeToValue(student.endSem);
 
-  let percent = 0;
+    const percent = ((end - start) / (start || 1)) * 100;
+    const rounded = Math.abs(percent).toFixed(1);
 
-  if (start !== 0) {
-    percent = ((end - start) / start) * 100;
-  }
+    let arrow = "▬";
+    let color = "#aaa";
 
-  const rounded = Math.abs(percent).toFixed(1);
+    if (percent > 0) {
+      arrow = "▲";
+      color = "#50c878";
+    }
 
-  let arrow = "▬";
-  let color = "#a0a0a0";
+    if (percent < 0) {
+      arrow = "▼";
+      color = "#ff6b6b";
+    }
 
-  if (percent > 0) {
-    arrow = "▲";
-    color = "#50c878";
-  }
-
-  if (percent < 0) {
-    arrow = "▼";
-    color = "#ff6b6b";
-  }
-
-  return (
-    <div style={{ color, fontWeight: "600", marginBottom: "10px" }}>
-      {arrow} {rounded}% since Assess 1
-    </div>
-  );
-}
+    return (
+      <div style={{ color, marginBottom: "10px", fontWeight: "600" }}>
+        {arrow} {rounded}% since Assess 1
+      </div>
+    );
+  };
 
   return (
     <div className="app-container">
+
       {/* NAVBAR */}
-      <nav className={`navbar ${navbarSolid ? "solid" : ""}`}>
-        <div className="nav-logo" onClick={() => setCurrentPage("home")}>
-          EDU<span>PORTAL</span>
-        </div>
+      <nav className="navbar">
+        <div className="nav-logo">EDU<span>PORTAL</span></div>
 
         <ul className="nav-links">
-          {["home", "admin", "student", "contact"].map(p => (
-            <li key={p}>
-              <button
-                className={currentPage === p ? "active" : ""}
-                onClick={() => setCurrentPage(p)}
-              >
-                {p.toUpperCase()}
-              </button>
-            </li>
-          ))}
+          <li><button onClick={() => setCurrentPage("home")}>HOME</button></li>
+          <li><button onClick={() => setCurrentPage("admin")}>ADMIN</button></li>
+          <li><button onClick={() => setCurrentPage("student")}>STUDENT</button></li>
+          <li><button onClick={() => setCurrentPage("contact")}>CONTACT</button></li>
         </ul>
       </nav>
 
       <main className="main-content">
-     {/* HOME */}
+
+      {/* HOME */}
 {currentPage === "home" && (
   <div className="hero fadeIn">
 
@@ -293,81 +255,76 @@ function App() {
 
   </div>
 )}
+
         {/* ADMIN */}
         {currentPage === "admin" && (
           <div className="admin-container">
-            {!isAdminLoggedIn ? (
+
+            {!isAdminLoggedIn && (
               <div className="login-card">
+
                 <h2>Admin Access</h2>
 
                 <input
                   type="password"
                   placeholder="Enter PIN"
                   value={adminPinInput}
-                  onChange={e => setAdminPinInput(e.target.value)}
+                  onChange={(e) => setAdminPinInput(e.target.value)}
                 />
 
-                <button className="login-btn" onClick={handleAdminLogin}>
+                <button onClick={handleAdminLogin}>
                   Enter
                 </button>
+
               </div>
-            ) : (
-              <div className="crud-section">
+            )}
+
+            {isAdminLoggedIn && (
+              <div>
+
                 <h2>Student Registry</h2>
 
-                <form className="crud-form" onSubmit={handleAdminCRUD}>
+                <form onSubmit={handleAddStudent} className="crud-form">
+
                   <input
                     placeholder="Name"
                     value={formData.name}
-                    onChange={e =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })}
                   />
 
                   <input
                     placeholder="Email"
                     value={formData.email}
-                    onChange={e =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })}
                   />
 
                   <input
                     placeholder="Assess1"
                     value={formData.assess1}
-                    onChange={e =>
-                      setFormData({
-                        ...formData,
-                        assess1: e.target.value
-                      })
-                    }
+                    onChange={(e) =>
+                      setFormData({ ...formData, assess1: e.target.value })}
                   />
 
                   <input
                     placeholder="Assess2"
                     value={formData.assess2}
-                    onChange={e =>
-                      setFormData({
-                        ...formData,
-                        assess2: e.target.value
-                      })
-                    }
+                    onChange={(e) =>
+                      setFormData({ ...formData, assess2: e.target.value })}
                   />
 
                   <input
                     placeholder="EndSem"
                     value={formData.endSem}
-                    onChange={e =>
-                      setFormData({
-                        ...formData,
-                        endSem: e.target.value
-                      })
-                    }
+                    onChange={(e) =>
+                      setFormData({ ...formData, endSem: e.target.value })}
                   />
 
-                  <button className="cta-btn">
-                    {isEditing ? "Update" : "Add"}
+                  <button type="submit">
+                    {isEditing ? "Update Student" : "Add Student"}
                   </button>
+
                 </form>
 
                 <table className="student-table">
@@ -383,8 +340,8 @@ function App() {
                   </thead>
 
                   <tbody>
-                    {students.map(s => (
-                      <tr key={s._id}>
+                    {students.map((s) => (
+                      <tr key={s.id}>
                         <td>{s.name}</td>
                         <td>{s.email}</td>
                         <td>{s.assess1}</td>
@@ -393,18 +350,17 @@ function App() {
 
                         <td>
                           <button
-                            className="edit-link"
                             onClick={() => {
-                              setFormData({ ...s, id: s._id });
                               setIsEditing(true);
+                              setEditId(s.id);
+                              setFormData(s);
                             }}
                           >
                             Edit
                           </button>
 
                           <button
-                            className="delete-link"
-                            onClick={() => handleDelete(s._id)}
+                            onClick={() => handleDelete(s.id)}
                           >
                             Delete
                           </button>
@@ -412,64 +368,59 @@ function App() {
                       </tr>
                     ))}
                   </tbody>
+
                 </table>
+
               </div>
             )}
+
           </div>
         )}
 
         {/* STUDENT */}
         {currentPage === "student" && (
           <div className="student-container">
-            {!currentStudent ? (
-              <div className="login-card">
+
+            {!currentStudent && (
+              <form onSubmit={handleStudentLogin} className="login-card">
+
                 <h2>Student Portal</h2>
 
-                <form onSubmit={handleStudentLogin}>
-                  <input
-                    placeholder="Enter Registered Name"
-                    value={studentInput}
-                    onChange={e => setStudentInput(e.target.value)}
-                  />
+                <input
+                  placeholder="Enter Name"
+                  value={studentInput}
+                  onChange={(e) => setStudentInput(e.target.value)}
+                />
 
-                  <button className="login-btn">
-                    Check Grades
-                  </button>
-                </form>
-              </div>
-            ) : (
+                <button type="submit">
+                  Check Grades
+                </button>
+
+              </form>
+            )}
+
+            {currentStudent && (
               <div className="student-dashboard">
+
                 <h2>
                   Report Card — <span>{currentStudent.name}</span>
                 </h2>
 
-                <div className="report-grid">
-                  <div className="report-card">
-                    <h3>Grades</h3>
-
-                    <div className="grade-row">
-                      <span>Assess 1</span>
-                      <strong>{currentStudent.assess1}</strong>
-                    </div>
-
-                    <div className="grade-row">
-                      <span>Assess 2</span>
-                      <strong>{currentStudent.assess2}</strong>
-                    </div>
-
-                    <div className="grade-row">
-                      <span>End Sem</span>
-                      <strong>{currentStudent.endSem}</strong>
-                    </div>
-                  </div>
+                <div className="report-card">
+                  <p>Assess 1 : {currentStudent.assess1}</p>
+                  <p>Assess 2 : {currentStudent.assess2}</p>
+                  <p>End Sem : {currentStudent.endSem}</p>
+                </div>
 
                 <div className="chart-card">
-                  <h3 style={{marginBottom:"8px"}}>Progress</h3>  
-                    {renderTrend(currentStudent)} 
-                    <Line
-                      data={chartData(currentStudent)}
-                      options={chartOptions}
-                    />
+
+                  {renderTrend(currentStudent)}
+
+                  <Line
+                    data={chartData(currentStudent)}
+                    options={chartOptions}
+                  />
+
                 </div>
 
                 <button
@@ -478,23 +429,29 @@ function App() {
                 >
                   Sign Out
                 </button>
+
               </div>
             )}
+
           </div>
         )}
 
         {/* CONTACT */}
-{currentPage === "contact" && (
-  <div className="contact-section">
-    <h2>Get in Touch</h2>
-    <p>Email: support@eduportal.com</p>
-  </div>
-)}
+        {currentPage === "contact" && (
+          <div className="contact-section">
+            <h2>Get in Touch</h2>
+            <p>Email: support@eduportal.com</p>
+          </div>
+        )}
+
       </main>
 
-<footer className="footer">
-  Created by Fahmiya | © 2026 EduPortal
-</footer>
+      <footer className="footer">
+        <p>Created by Fahmiya | © 2026 EduPortal</p>
+      </footer>
 
-</div>
+    </div>
+  );
+}
+
 export default App;
