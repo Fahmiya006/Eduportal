@@ -189,10 +189,31 @@ function App() {
       </nav>
 
       <main className="main-content">
-        {/* HOME */}
-        {currentPage === "home" && (
-          <div className="hero">
-            {showMore && (
+     {/* HOME */}
+{currentPage === "home" && (
+  <div className="hero fadeIn">
+
+    {!showMore && (
+      <div>
+        <h1>
+          Welcome to <span>EduPortal</span>
+        </h1>
+
+        <p>
+          Academic excellence starts here. Track grades, visualize progress,
+          and manage students effortlessly.
+        </p>
+
+        <button
+          className="cta-btn"
+          onClick={() => setShowMore(true)}
+        >
+          Learn More
+        </button>
+      </div>
+    )}
+
+    {showMore && (
       <div className="extra-content fadeIn">
 
         <h2>Platform <span>Insights</span></h2>
