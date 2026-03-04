@@ -1,189 +1,196 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Legend,
-  Filler
+Chart as ChartJS,
+CategoryScale,
+LinearScale,
+PointElement,
+LineElement,
+Title,
+Tooltip,
+Legend,
+Filler
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 
 ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Legend,
-  Filler
+CategoryScale,
+LinearScale,
+PointElement,
+LineElement,
+Title,
+Tooltip,
+Legend,
+Filler
 );
 
-const API = "https://eduportal-1-7dk7.onrender.com/students";
+const API = "https://eduportal-1-7dk7.onrender.com";
 
-function gradeToValue(g) {
-  const map = { S: 10, "A+": 9, A: 8, "B+": 7, B: 6, "C+": 5, C: 4, U: 0 };
-  return map[g?.toUpperCase()] ?? 0;
+function gradeToValue(grade) {
+const map = { S: 10, "A+": 9, A: 8, "B+": 7, B: 6, "C+": 5, C: 4, U: 0 };
+return map[String(grade).toUpperCase()] ?? 0;
 }
 
 function App() {
+const [currentPage, setCurrentPage] = useState("home");
+const [showMore, setShowMore] = useState(false);
+const [navbarSolid, setNavbarSolid] = useState(false);
 
-  const [currentPage, setCurrentPage] = useState("home");
-  const [showMore, setShowMore] = useState(false);
+const [students, setStudents] = useState([]);
+const [currentStudent, setCurrentStudent] = useState(null);
+const [studentInput, setStudentInput] = useState("");
 
-  const [students, setStudents] = useState([]);
+const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+const [adminPinInput, setAdminPinInput] = useState("");
 
-  const [adminPinInput, setAdminPinInput] = useState("");
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+const [formData, setFormData] = useState({
+id: null,
+name: "",
+email: "",
+assess1: "",
+assess2: "",
+endSem: ""
+});
 
-  const [studentInput, setStudentInput] = useState("");
-  const [currentStudent, setCurrentStudent] = useState(null);
+const [isEditing, setIsEditing] = useState(false);
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    assess1: "",
-    assess2: "",
-    endSem: ""
-  });
+// GET STUDENTS
+useEffect(() => {
+fetch(`${API}/students`)
+.then(res => res.json())
+.then(data => setStudents(data))
+.catch(err => console.log(err));
+}, []);
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [editId, setEditId] = useState(null);
+// NAVBAR SCROLL
+useEffect(() => {
+const onScroll = () => setNavbarSolid(window.scrollY > 40);
+window.addEventListener("scroll", onScroll);
+return () => window.removeEventListener("scroll", onScroll);
+}, []);
 
-  useEffect(() => {
-    fetch(API)
-      .then(res => res.json())
-      .then(data => setStudents(data))
-      .catch(() => console.log("Backend not reachable"));
-  }, []);
+// ADMIN LOGIN
+const handleAdminLogin = () => {
+if (adminPinInput === "4036") {
+setIsAdminLoggedIn(true);
+setAdminPinInput("");
+} else {
+alert("Incorrect PIN");
+}
+};
 
-  const handleAdminLogin = () => {
-    if (adminPinInput === "4036") {
-      setIsAdminLoggedIn(true);
-    } else {
-      alert("Incorrect PIN");
-    }
-  };
+// ADD / UPDATE STUDENT
+const handleAdminCRUD = e => {
+e.preventDefault();
 
-  const handleAddStudent = (e) => {
-    e.preventDefault();
+const payload = {
+name: formData.name,
+email: formData.email,
+assess1: formData.assess1.toUpperCase(),
+assess2: formData.assess2.toUpperCase(),
+endSem: formData.endSem.toUpperCase()
+};
 
-    const payload = {
-      name: formData.name,
-      email: formData.email,
-      assess1: formData.assess1,
-      assess2: formData.assess2,
-      endSem: formData.endSem
-    };
+if (isEditing) {
+fetch(`${API}/students/${formData.id}`, {
+method: "PUT",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify(payload)
+}).then(() => {
+setStudents(
+students.map(s =>
+s._id === formData.id ? { ...s, ...payload } : s
+)
+);
+setIsEditing(false);
+});
+} else {
+fetch(`${API}/students`, {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify(payload)
+})
+.then(res => res.json())
+.then(newStudent => setStudents([...students, newStudent]));
+}
 
-    if (isEditing) {
-      fetch(`${API}/${editId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      })
-        .then(() => window.location.reload());
-    } else {
-      fetch(API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      })
-        .then(() => window.location.reload());
-    }
-  };
+setFormData({
+id: null,
+name: "",
+email: "",
+assess1: "",
+assess2: "",
+endSem: ""
+});
+};
 
-  const handleDelete = (id) => {
-    fetch(`${API}/${id}`, { method: "DELETE" })
-      .then(() => window.location.reload());
-  };
+// DELETE
+const handleDelete = id => {
+fetch(`${API}/students/${id}`, { method: "DELETE" }).then(() =>
+setStudents(students.filter(s => s._id !== id))
+);
+};
 
-  const handleStudentLogin = (e) => {
-    e.preventDefault();
+// STUDENT LOGIN
+const handleStudentLogin = e => {
+e.preventDefault();
+const found = students.find(
+s => s.name.toLowerCase() === studentInput.toLowerCase()
+);
+if (found) setCurrentStudent(found);
+else alert("Student not found");
+};
 
-    const found = students.find(
-      s => s.name.toLowerCase() === studentInput.toLowerCase()
-    );
+// CHART
+const chartData = student => ({
+labels: ["Assess 1", "Assess 2", "End Sem"],
+datasets: [
+{
+label: "Performance",
+data: [
+gradeToValue(student.assess1),
+gradeToValue(student.assess2),
+gradeToValue(student.endSem)
+],
+fill: true,
+borderColor: "#50c878",
+backgroundColor: "rgba(80,200,120,0.1)"
+}
+]
+});
 
-    if (found) setCurrentStudent(found);
-    else alert("Student not found");
-  };
+const chartOptions = {
+responsive: true,
+scales: {
+y: { beginAtZero: true, max: 10 }
+}
+};
 
-  const chartData = (student) => ({
-    labels: ["Assess 1", "Assess 2", "End Sem"],
-    datasets: [
-      {
-        label: "Performance",
-        data: [
-          gradeToValue(student.assess1),
-          gradeToValue(student.assess2),
-          gradeToValue(student.endSem)
-        ],
-        borderColor: "#50c878",
-        backgroundColor: "rgba(80,200,120,0.2)",
-        fill: true
-      }
-    ]
-  });
+return (
+<div className="app-container">
+{/* NAVBAR */}
+<nav className={`navbar ${navbarSolid ? "solid" : ""}`}>
+<div className="nav-logo" onClick={() => setCurrentPage("home")}>
+EDU<span>PORTAL</span>
+</div>
 
-  const chartOptions = {
-    responsive: true,
-    scales: {
-      y: {
-        min: 0,
-        max: 10
-      }
-    }
-  };
+<ul className="nav-links">
+{["home", "admin", "student", "contact"].map(p => (
+<li key={p}>
+<button
+className={currentPage === p ? "active" : ""}
+onClick={() => setCurrentPage(p)}
+>
+{p.toUpperCase()}
+</button>
+</li>
+))}
+</ul>
+</nav>
 
-  const renderTrend = (student) => {
-    const start = gradeToValue(student.assess1);
-    const end = gradeToValue(student.endSem);
-
-    const percent = ((end - start) / (start || 1)) * 100;
-    const rounded = Math.abs(percent).toFixed(1);
-
-    let arrow = "▬";
-    let color = "#aaa";
-
-    if (percent > 0) {
-      arrow = "▲";
-      color = "#50c878";
-    }
-
-    if (percent < 0) {
-      arrow = "▼";
-      color = "#ff6b6b";
-    }
-
-    return (
-      <div style={{ color, marginBottom: "10px", fontWeight: "600" }}>
-        {arrow} {rounded}% since Assess 1
-      </div>
-    );
-  };
-
-  return (
-    <div className="app-container">
-
-      {/* NAVBAR */}
-      <nav className="navbar">
-        <div className="nav-logo">EDU<span>PORTAL</span></div>
-
-        <ul className="nav-links">
-          <li><button onClick={() => setCurrentPage("home")}>HOME</button></li>
-          <li><button onClick={() => setCurrentPage("admin")}>ADMIN</button></li>
-          <li><button onClick={() => setCurrentPage("student")}>STUDENT</button></li>
-          <li><button onClick={() => setCurrentPage("contact")}>CONTACT</button></li>
-        </ul>
-      </nav>
-
-      <main className="main-content">
-
-      {/* HOME */}
+<main className="main-content">
+      
+     {/* HOME */}
 {currentPage === "home" && (
   <div className="hero fadeIn">
 
@@ -208,309 +215,256 @@ function App() {
     )}
 
     {showMore && (
-      <div className="extra-content fadeIn">
+<div className="extra-content fadeIn">
 
-        <h2>Platform <span>Insights</span></h2>
+<h2>Platform <span>Insights</span></h2>
 
-        <div className="info-grid">
-          <div className="info-item">
-            <h3>🔐 Secure Access</h3>
-            <p>Admin dashboard protected with secure PIN authentication.</p>
-          </div>
+<div className="info-grid">
+<div className="info-item">
+<h3>🔐 Secure Access</h3>
+<p>Admin dashboard protected with secure PIN authentication.</p>
+</div>
 
-          <div className="info-item">
-            <h3>⚡ Real-Time Updates</h3>
-            <p>All grades are stored in cloud database and updated instantly.</p>
-          </div>
+<div className="info-item">
+<h3>⚡ Real-Time Updates</h3>
+<p>All grades are stored in cloud database and updated instantly.</p>
+</div>
 
-          <div className="info-item">
-            <h3>📊 Performance Tracking</h3>
-            <p>Students can view visual progress charts for academic growth.</p>
-          </div>
+<div className="info-item">
+<h3>📊 Performance Tracking</h3>
+<p>Students can view visual progress charts for academic growth.</p>
+</div>
 
-          <div className="info-item">
-            <h3>☁ Cloud Powered</h3>
-            <p>Powered by MongoDB Atlas, Render & Vercel deployment.</p>
-          </div>
-        </div>
+<div className="info-item">
+<h3>☁ Cloud Powered</h3>
+<p>Powered by MongoDB Atlas, Render & Vercel deployment.</p>
+</div>
+</div>
 
-        <div className="learn-more-paragraph">
-          <p>
-            EduPortal bridges the gap between educators and students by
-            offering a transparent, efficient, and visually engaging
-            academic management system. Teachers manage records easily,
-            and students gain insight into their academic performance trends.
-          </p>
-        </div>
+<div className="learn-more-paragraph">
+<p>
+EduPortal bridges the gap between educators and students by
+offering a transparent, efficient, and visually engaging
+academic management system. Teachers manage records easily,
+and students gain insight into their academic performance trends.
+</p>
+</div>
 
-        <button
-          className="back-btn"
-          onClick={() => setShowMore(false)}
-        >
-          Go Back
-        </button>
+<button
+className="back-btn"
+onClick={() => setShowMore(false)}
+>
+Go Back
+</button>
 
-      </div>
-    )}
-
-  </div>
+</div>
 )}
 
-        {/* ADMIN */}
-       {currentPage === "admin" && (
-  <div className="admin-container fadeIn">
+</div>
+)}
+{/* ADMIN */}
+{currentPage === "admin" && (
+<div className="admin-container">
+{!isAdminLoggedIn ? (
+<div className="login-card">
+<h2>Admin Access</h2>
 
-    {!isAdminLoggedIn ? (
-      <div className="login-card">
+<input
+type="password"
+placeholder="Enter PIN"
+value={adminPinInput}
+onChange={e => setAdminPinInput(e.target.value)}
+/>
 
-        <h2>Admin <span>Access</span></h2>
+<button className="login-btn" onClick={handleAdminLogin}>
+Enter
+</button>
+</div>
+) : (
+<div className="crud-section">
+<h2>Student Registry</h2>
 
-        <input
-          type="password"
-          placeholder="Enter 4-Digit PIN"
-          className="login-input"
-          value={adminPinInput}
-          onChange={(e) => setAdminPinInput(e.target.value)}
-        />
+<form className="crud-form" onSubmit={handleAdminCRUD}>
+<input
+placeholder="Name"
+value={formData.name}
+onChange={e =>
+setFormData({ ...formData, name: e.target.value })
+}
+/>
 
-        <button
-          className="login-btn"
-          onClick={handleAdminLogin}
-        >
-          Enter Dashboard
-        </button>
+<input
+placeholder="Email"
+value={formData.email}
+onChange={e =>
+setFormData({ ...formData, email: e.target.value })
+}
+/>
 
-      </div>
-    ) : (
+<input
+placeholder="Assess1"
+value={formData.assess1}
+onChange={e =>
+setFormData({
+...formData,
+assess1: e.target.value
+})
+}
+/>
 
-      <div className="crud-section">
+<input
+placeholder="Assess2"
+value={formData.assess2}
+onChange={e =>
+setFormData({
+...formData,
+assess2: e.target.value
+})
+}
+/>
 
-        <h2>Student <span>Registry</span></h2>
+<input
+placeholder="EndSem"
+value={formData.endSem}
+onChange={e =>
+setFormData({
+...formData,
+endSem: e.target.value
+})
+}
+/>
 
-        <form onSubmit={handleAdminCRUD} className="crud-form">
+<button className="cta-btn">
+{isEditing ? "Update" : "Add"}
+</button>
+</form>
 
-          <input
-            placeholder="Name"
-            value={formData.name}
-            onChange={(e)=>setFormData({...formData,name:e.target.value})}
-            required
-          />
+<table className="student-table">
+<thead>
+<tr>
+<th>Name</th>
+<th>Email</th>
+<th>A1</th>
+<th>A2</th>
+<th>End</th>
+<th>Action</th>
+</tr>
+</thead>
 
-          <input
-            placeholder="Email"
-            value={formData.email}
-            onChange={(e)=>setFormData({...formData,email:e.target.value})}
-            required
-          />
+<tbody>
+{students.map(s => (
+<tr key={s._id}>
+<td>{s.name}</td>
+<td>{s.email}</td>
+<td>{s.assess1}</td>
+<td>{s.assess2}</td>
+<td>{s.endSem}</td>
 
-          <input
-            placeholder="Assess 1"
-            value={formData.assess1}
-            onChange={(e)=>setFormData({...formData,assess1:e.target.value})}
-            required
-          />
+<td>
+<button
+className="edit-link"
+onClick={() => {
+setFormData({ ...s, id: s._id });
+setIsEditing(true);
+}}
+>
+Edit
+</button>
 
-          <input
-            placeholder="Assess 2"
-            value={formData.assess2}
-            onChange={(e)=>setFormData({...formData,assess2:e.target.value})}
-            required
-          />
-
-          <input
-            placeholder="End Sem"
-            value={formData.endSem}
-            onChange={(e)=>setFormData({...formData,endSem:e.target.value})}
-            required
-          />
-
-          <button type="submit" className="cta-btn">
-            {isEditing ? "Update Student" : "Add Student"}
-          </button>
-
-        </form>
-
-        <div className="table-container">
-
-          <table className="student-table">
-
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Assess1</th>
-                <th>Assess2</th>
-                <th>EndSem</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-
-            <tbody>
-
-              {students.map((s)=>(
-                <tr key={s.id}>
-
-                  <td>{s.name}</td>
-                  <td>{s.email}</td>
-                  <td className="emerald-text">{s.assess1}</td>
-                  <td className="emerald-text">{s.assess2}</td>
-                  <td className="emerald-text">{s.endSem}</td>
-
-                  <td>
-
-                    <button
-                      className="edit-link"
-                      onClick={()=>{
-                        setFormData({
-                          id:s.id,
-                          name:s.name,
-                          email:s.email,
-                          assess1:s.assess1,
-                          assess2:s.assess2,
-                          endSem:s.endSem
-                        })
-                        setIsEditing(true)
-                      }}
-                    >
-                      Edit
-                    </button>
-
-                    <button
-                      className="delete-link"
-                      onClick={()=>handleDelete(s.id)}
-                    >
-                      Delete
-                    </button>
-
-                  </td>
-
-                </tr>
-              ))}
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-        <button
-          className="back-btn"
-          onClick={logout}
-          style={{marginTop:"20px"}}
-        >
-          Logout Admin
-        </button>
-
-      </div>
-
-    )}
-
-  </div>
+<button
+className="delete-link"
+onClick={() => handleDelete(s._id)}
+>
+Delete
+</button>
+</td>
+</tr>
+))}
+</tbody>
+</table>
+</div>
+)}
+</div>
 )}
 
-        {/* STUDENT */}
+{/* STUDENT */}
 {currentPage === "student" && (
-  <div className="student-container fadeIn">
+<div className="student-container">
+{!currentStudent ? (
+<div className="login-card">
+<h2>Student Portal</h2>
 
-    {!currentStudent ? (
+<form onSubmit={handleStudentLogin}>
+<input
+placeholder="Enter Registered Name"
+value={studentInput}
+onChange={e => setStudentInput(e.target.value)}
+/>
 
-      <div className="login-card">
+<button className="login-btn">
+Check Grades
+</button>
+</form>
+</div>
+) : (
+<div className="student-dashboard">
+<h2>
+Report Card — <span>{currentStudent.name}</span>
+</h2>
 
-        <h2>Student <span>Portal</span></h2>
+<div className="report-grid">
+<div className="report-card">
+<h3>Grades</h3>
 
-        <form onSubmit={handleStudentLogin}>
+<div className="grade-row">
+<span>Assess 1</span>
+<strong>{currentStudent.assess1}</strong>
+</div>
 
-          <input
-            placeholder="Enter Registered Name"
-            value={studentInput}
-            onChange={(e)=>setStudentInput(e.target.value)}
-            required
-          />
+<div className="grade-row">
+<span>Assess 2</span>
+<strong>{currentStudent.assess2}</strong>
+</div>
 
-          <button type="submit" className="login-btn">
-            Check Grades
-          </button>
+<div className="grade-row">
+<span>End Sem</span>
+<strong>{currentStudent.endSem}</strong>
+</div>
+</div>
 
-        </form>
+<div className="chart-card">
+<Line
+data={chartData(currentStudent)}
+options={chartOptions}
+/>
+</div>
+</div>
 
-      </div>
-
-    ) : (
-
-      <div className="student-dashboard">
-
-        <h2>
-          Report Card — <span>{currentStudent.name}</span>
-        </h2>
-
-        <div className="report-grid">
-
-          <div className="report-card">
-
-            <h3>Grades</h3>
-
-            <div className="grade-row">
-              <span>Assess 1</span>
-              <strong>{currentStudent.assess1}</strong>
-            </div>
-
-            <div className="grade-row">
-              <span>Assess 2</span>
-              <strong>{currentStudent.assess2}</strong>
-            </div>
-
-            <div className="grade-row">
-              <span>End Sem</span>
-              <strong>{currentStudent.endSem}</strong>
-            </div>
-
-          </div>
-
-          <div className="chart-card">
-
-            <h3>Progress</h3>
-
-            {renderTrend(currentStudent)}
-
-            <Line
-              data={chartDataFor(currentStudent)}
-              options={chartOptions}
-            />
-
-          </div>
-
-        </div>
-
-        <button
-          className="back-btn"
-          onClick={()=>setCurrentStudent(null)}
-        >
-          Sign Out
-        </button>
-
-      </div>
-
-    )}
-
-  </div>
+<button
+className="back-btn"
+onClick={() => setCurrentStudent(null)}
+>
+Sign Out
+</button>
+</div>
+)}
+</div>
 )}
 
-        {/* CONTACT */}
-        {currentPage === "contact" && (
-          <div className="contact-section">
-            <h2>Get in Touch</h2>
-            <p>Email: support@eduportal.com</p>
-          </div>
-        )}
+{/* CONTACT */}
+{currentPage === "contact" && (
+<div className="contact-section">
+<h2>Get in Touch</h2>
+<p>Email: support@eduportal.com</p>
+</div>
+)}
+</main>
 
-      </main>
-
-      <footer className="footer">
-        <p>Created by Fahmiya | © 2026 EduPortal</p>
-      </footer>
-
-    </div>
-  );
+<footer className="footer">
+Created by Fahmiya | © 2026 EduPortal
+</footer>
+</div>
+);
 }
 
 export default App;
