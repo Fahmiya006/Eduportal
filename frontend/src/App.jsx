@@ -24,7 +24,7 @@ Legend,
 Filler
 );
 
-const API = "https://eduportal-1-7dk7.onrender.com";
+
 const API ="http://52.140.125.187:5000";
 
 function gradeToValue(grade) {
