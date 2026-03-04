@@ -488,19 +488,17 @@ function App() {
         )}
 
         {/* CONTACT */}
-        {currentPage === "contact" && (
-          <div className="contact-section">
-            <h2>Get in Touch</h2>
-            <p>Email: support@eduportal.com</p>
-          </div>
-        )}
+{currentPage === "contact" && (
+  <div className="contact-section">
+    <h2>Get in Touch</h2>
+    <p>Email: support@eduportal.com</p>
+  </div>
+)}
       </main>
 
-      <footer className="footer">
-        Created by Fahmiya | © 2026 EduPortal
-      </footer>
-    </div>
-  );
-}
+<footer className="footer">
+  Created by Fahmiya | © 2026 EduPortal
+</footer>
 
+</div>
 export default App;
