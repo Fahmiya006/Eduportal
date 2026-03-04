@@ -464,17 +464,13 @@ function App() {
                   </div>
 
                 <div className="chart-card">
-
-  <h3 style={{marginBottom:"8px"}}>Progress</h3>
-
-  {renderTrend(currentStudent)}
-
-  <Line
-    data={chartData(currentStudent)}
-    options={chartOptions}
-  />
-
-</div>
+                  <h3 style={{marginBottom:"8px"}}>Progress</h3>  
+                    {renderTrend(currentStudent)} 
+                    <Line
+                      data={chartData(currentStudent)}
+                      options={chartOptions}
+                    />
+                </div>
 
                 <button
                   className="back-btn"
