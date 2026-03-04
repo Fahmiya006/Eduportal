@@ -262,6 +262,7 @@ function App() {
 
     {!isAdminLoggedIn ? (
       <div className="login-card">
+
         <h2>Admin <span>Access</span></h2>
 
         <input
@@ -278,6 +279,7 @@ function App() {
         >
           Enter Dashboard
         </button>
+
       </div>
     ) : (
 
@@ -359,7 +361,14 @@ function App() {
                     <button
                       className="edit-link"
                       onClick={()=>{
-                        setFormData(s)
+                        setFormData({
+                          id:s.id,
+                          name:s.name,
+                          email:s.email,
+                          assess1:s.assess1,
+                          assess2:s.assess2,
+                          endSem:s.endSem
+                        })
                         setIsEditing(true)
                       }}
                     >
@@ -393,6 +402,7 @@ function App() {
         </button>
 
       </div>
+
     )}
 
   </div>
@@ -428,34 +438,49 @@ function App() {
     ) : (
 
       <div className="student-dashboard">
+
         <h2>
           Report Card — <span>{currentStudent.name}</span>
         </h2>
+
         <div className="report-grid">
+
           <div className="report-card">
+
             <h3>Grades</h3>
+
             <div className="grade-row">
               <span>Assess 1</span>
               <strong>{currentStudent.assess1}</strong>
             </div>
+
             <div className="grade-row">
               <span>Assess 2</span>
               <strong>{currentStudent.assess2}</strong>
             </div>
+
             <div className="grade-row">
               <span>End Sem</span>
               <strong>{currentStudent.endSem}</strong>
             </div>
+
           </div>
+
           <div className="chart-card">
+
             <h3>Progress</h3>
+
             {renderTrend(currentStudent)}
+
             <Line
               data={chartDataFor(currentStudent)}
               options={chartOptions}
             />
+
           </div>
+
         </div>
+
         <button
           className="back-btn"
           onClick={()=>setCurrentStudent(null)}
