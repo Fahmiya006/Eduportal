@@ -165,6 +165,38 @@ function App() {
       y: { beginAtZero: true, max: 10 }
     }
   };
+  function renderTrend(student) {
+
+  const start = gradeToValue(student.assess1);
+  const end = gradeToValue(student.endSem);
+
+  let percent = 0;
+
+  if (start !== 0) {
+    percent = ((end - start) / start) * 100;
+  }
+
+  const rounded = Math.abs(percent).toFixed(1);
+
+  let arrow = "▬";
+  let color = "#a0a0a0";
+
+  if (percent > 0) {
+    arrow = "▲";
+    color = "#50c878";
+  }
+
+  if (percent < 0) {
+    arrow = "▼";
+    color = "#ff6b6b";
+  }
+
+  return (
+    <div style={{ color, fontWeight: "600", marginBottom: "10px" }}>
+      {arrow} {rounded}% since Assess 1
+    </div>
+  );
+}
 
   return (
     <div className="app-container">
@@ -431,13 +463,18 @@ function App() {
                     </div>
                   </div>
 
-                  <div className="chart-card">
-                    <Line
-                      data={chartData(currentStudent)}
-                      options={chartOptions}
-                    />
-                  </div>
-                </div>
+                <div className="chart-card">
+
+  <h3 style={{marginBottom:"8px"}}>Progress</h3>
+
+  {renderTrend(currentStudent)}
+
+  <Line
+    data={chartData(currentStudent)}
+    options={chartOptions}
+  />
+
+</div>
 
                 <button
                   className="back-btn"
