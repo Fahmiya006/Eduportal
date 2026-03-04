@@ -25,6 +25,7 @@ Filler
 );
 
 const API = "https://eduportal-1-7dk7.onrender.com";
+const API ="http://52.140.125.187:5000";
 
 function gradeToValue(grade) {
 const map = { S: 10, "A+": 9, A: 8, "B+": 7, B: 6, "C+": 5, C: 4, U: 0 };
